@@ -1,0 +1,12 @@
+import './database/db';
+import express from 'express';
+
+import { urlRouter } from './routes/url-router';
+
+const app = express();
+app.use(express.urlencoded({ extended: true }));
+
+app.use(express.json());
+app.use(urlRouter);
+
+export { app };
