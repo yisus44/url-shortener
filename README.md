@@ -9,6 +9,6 @@ Express is lightweight and very known, nevertheless hapi was also considered. Mi
 
 I plan to add redis to this project in the future to improve perfomance if necessary.
 
-If you found this repository for some reason and want to replicate for get some practice with node, this diagrams might help you if you are stuck.
+If you found this repository for some reason and want to replicate for get some practice with node, these diagrams might help you if you are stuck.
 ![image](https://user-images.githubusercontent.com/55028090/123185707-25220b80-d45c-11eb-8a9c-3e22e1297c6b.png)
 ![image](https://user-images.githubusercontent.com/55028090/123185955-b09b9c80-d45c-11eb-8404-78f13b89efad.png)
