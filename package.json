@@ -1,7 +1,7 @@
 {
-  "name": "ts-rest-template",
+  "name": "url_shorter",
   "version": "1.0.0",
-  "description": "template for rest api developed with nodejs and typescript",
+  "description": "an url shorter that also serves as a playground for learning new technologies",
   "main": "index.js",
   "scripts": {
     "start": "node dist/index.js",
@@ -22,7 +22,9 @@
     "@types/throng": "^5.0.2",
     "@types/validator": "^13.1.4",
     "jest": "^27.0.4",
-    "typescript": "^4.3.2"
+    "typescript": "^4.3.2",
+    "ts-node-dev": "^1.1.8",
+    "tsc": "^2.0.3"
   },
   "dependencies": {
     "dotenv": "^10.0.0",
@@ -33,8 +35,6 @@
     "redis": "^3.1.2",
     "shortid": "^2.2.16",
     "throng": "^5.0.0",
-    "ts-node-dev": "^1.1.6",
-    "tsc": "^2.0.3",
     "validator": "^13.6.0"
   }
 }
