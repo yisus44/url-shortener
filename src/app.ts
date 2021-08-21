@@ -3,7 +3,6 @@ import './database/redis';
 import express from 'express';
 import helmet from 'helmet';
 
-
 import { urlRouter } from './routes/url-router';
 
 const app = express();
