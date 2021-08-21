@@ -112,6 +112,7 @@ function redirect(req, res) {
                     cachedUrl = _a.sent();
                     if (cachedUrl) {
                         res.redirect(cachedUrl);
+                        return [2 /*return*/];
                     }
                     return [4 /*yield*/, URL_1.URL.findOne({ urlCode: urlCode })];
                 case 3:
@@ -149,5 +150,5 @@ function isNotValidURL(URL) {
     return false;
 }
 function sendHTML(shortURL) {
-    return "<p>Your url: <br><b>" + shortURL + "</b>\n  Go back\n  <a href=\"https://flores-url-shorty.herokuapp.com/\">\n    <button>Go back</button>\n  </a>\n  ";
+    return "<p>Your url: <br><b>" + shortURL + "</b>\n <br>\n  <a href=\"https://flores-url-shorty.herokuapp.com/\">\n    <button>Go back</button>\n  </a>\n  ";
 }
