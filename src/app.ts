@@ -1,4 +1,5 @@
 import './database/db';
+import './database/redis';
 import express from 'express';
 
 import { urlRouter } from './routes/url-router';

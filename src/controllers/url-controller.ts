@@ -1,10 +1,14 @@
+import path from 'path';
+import { promisify } from 'util';
+
 import shortid from 'shortid';
+import validator from 'validator';
+import { Request, Response } from 'express';
+
 import { URL } from '../models/URL';
 
-import { Request, Response } from 'express';
-import validator from 'validator';
-
-import path from 'path';
+import { client, client as redisClient } from '../database/redis';
+const getAsync = promisify(redisClient.get).bind(client);
 
 const baseURL = 'https://flores-url-shorty.herokuapp.com';
 
@@ -13,16 +17,15 @@ async function createShortUrl(req: Request, res: Response) {
 
   if (isNotValidURL(longURL)) {
     res.sendStatus(400);
-    return;
   }
 
-  const exists = await URL.findOne({ longURL });
-
-  if (exists) {
-    res.send(sendHTML(exists.shortURL));
-    return;
-  }
   try {
+    const exists = await URL.findOne({ longURL });
+
+    if (exists) {
+      res.send(sendHTML(exists.shortURL));
+      return;
+    }
     const urlCode = shortid.generate();
     const shortURL = `${baseURL}/${urlCode}`;
     const url = new URL({
@@ -32,6 +35,10 @@ async function createShortUrl(req: Request, res: Response) {
     });
     await url.save();
     res.send(sendHTML(shortURL));
+    //its irrelevant for the client to know if its cached or not so we dont await or set a callback for this
+    redisClient.set(urlCode, longURL, function () {
+      console.log('cache set');
+    });
     return;
   } catch (error) {
     console.log(error);
@@ -42,8 +49,12 @@ async function createShortUrl(req: Request, res: Response) {
 
 async function redirect(req: Request, res: Response) {
   const { urlCode } = req.params;
-
+  console.log('hola esquizo');
   try {
+    const cachedUrl = await getAsync(urlCode);
+    if (cachedUrl) {
+      res.redirect(cachedUrl);
+    }
     const matchURL = await URL.findOne({ urlCode });
     if (!matchURL) {
       res.sendStatus(404);
