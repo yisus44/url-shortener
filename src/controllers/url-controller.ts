@@ -17,6 +17,7 @@ async function createShortUrl(req: Request, res: Response) {
 
   if (isNotValidURL(longURL)) {
     res.sendStatus(400);
+    return;
   }
 
   try {
@@ -81,7 +82,12 @@ function isNotValidURL(URL: string) {
 }
 
 function sendHTML(shortURL: string): string {
-  return `<p>Your url: <br><b>${shortURL}</b>`;
+  return `<p>Your url: <br><b>${shortURL}</b>
+  Go back
+  <a href="https://flores-url-shorty.herokuapp.com/">
+    <button>Go back</button>
+  </a>
+  `;
 }
 
 export { createShortUrl, redirect, sendIndex };

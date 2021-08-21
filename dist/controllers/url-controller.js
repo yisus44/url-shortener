@@ -57,6 +57,7 @@ function createShortUrl(req, res) {
                     longURL = req.body.longURL;
                     if (isNotValidURL(longURL)) {
                         res.sendStatus(400);
+                        return [2 /*return*/];
                     }
                     _a.label = 1;
                 case 1:
@@ -148,5 +149,5 @@ function isNotValidURL(URL) {
     return false;
 }
 function sendHTML(shortURL) {
-    return "<p>Your url: <br><b>" + shortURL + "</b>";
+    return "<p>Your url: <br><b>" + shortURL + "</b>\n  Go back\n  <a href=\"https://flores-url-shorty.herokuapp.com/\">\n    <button>Go back</button>\n  </a>\n  ";
 }
