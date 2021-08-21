@@ -55,6 +55,7 @@ async function redirect(req: Request, res: Response) {
     const cachedUrl = await getAsync(urlCode);
     if (cachedUrl) {
       res.redirect(cachedUrl);
+      return;
     }
     const matchURL = await URL.findOne({ urlCode });
     if (!matchURL) {
@@ -83,7 +84,7 @@ function isNotValidURL(URL: string) {
 
 function sendHTML(shortURL: string): string {
   return `<p>Your url: <br><b>${shortURL}</b>
-  Go back
+ <br>
   <a href="https://flores-url-shorty.herokuapp.com/">
     <button>Go back</button>
   </a>
