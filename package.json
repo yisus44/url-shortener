@@ -5,8 +5,6 @@
   "main": "index.js",
   "scripts": {
     "start": "node dist/index.js",
-    "postinstall": "tsc && mv -i -v client dist/",
-    "deploy": "git add . && git commit -m Heroku && git push heroku master",
     "dev": "ts-node-dev src/index.ts",
     "test": "jest"
   },

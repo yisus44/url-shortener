@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.urlRouter = void 0;
+var express_1 = require("express");
+var url_controller_1 = require("../controllers/url-controller");
+var urlRouter = express_1.Router();
+exports.urlRouter = urlRouter;
+urlRouter.post('/shorter', url_controller_1.createShortUrl);
+urlRouter.get('/:urlCode', url_controller_1.redirect);
+urlRouter.get('/', url_controller_1.sendIndex);
