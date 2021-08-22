@@ -3,9 +3,10 @@ import { promisify } from 'util';
 
 import shortid from 'shortid';
 import validator from 'validator';
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 
 import { URL } from '../models/URL';
+import { sendHtmlNotFound, sendHtmlUrl } from './html';
 
 import { client, client as redisClient } from '../database/redis';
 const getAsync = promisify(redisClient.get).bind(client);
@@ -14,8 +15,8 @@ const baseURL = 'https://flores-url-shorty.herokuapp.com';
 
 async function createShortUrl(req: Request, res: Response) {
   const { longURL } = req.body;
-
-  if (isNotValidURL(longURL)) {
+  console.log(longURL);
+  if (!validator.isURL(longURL)) {
     res.sendStatus(400);
     return;
   }
@@ -24,7 +25,7 @@ async function createShortUrl(req: Request, res: Response) {
     const exists = await URL.findOne({ longURL });
 
     if (exists) {
-      res.send(sendHTML(exists.shortURL));
+      res.send(sendHtmlUrl(exists.shortURL));
       return;
     }
     const urlCode = shortid.generate();
@@ -35,7 +36,7 @@ async function createShortUrl(req: Request, res: Response) {
       urlCode,
     });
     await url.save();
-    res.send(sendHTML(shortURL));
+    res.send(sendHtmlUrl(shortURL));
     //its irrelevant for the client to know if its cached or not so we dont await or set a callback for this
     redisClient.set(urlCode, longURL, function () {
       console.log('cache set');
@@ -50,20 +51,16 @@ async function createShortUrl(req: Request, res: Response) {
 
 async function redirect(req: Request, res: Response) {
   const { urlCode } = req.params;
-  console.log('hola esquizo');
   try {
     const cachedUrl = await getAsync(urlCode);
     if (cachedUrl) {
-      res.redirect(cachedUrl);
-      return;
+      return res.redirect(cachedUrl);
     }
     const matchURL = await URL.findOne({ urlCode });
     if (!matchURL) {
-      res.sendStatus(404);
-      return;
+      return res.status(404).send(notFound(req));
     }
-    res.redirect(matchURL.longURL);
-    return;
+    return res.redirect(matchURL.longURL);
   } catch (error) {
     res.send('We dont have that URL registered');
     console.log(error);
@@ -71,24 +68,25 @@ async function redirect(req: Request, res: Response) {
   }
 }
 
+function notFound(req: Request) {
+  // respond with html page
+  if (req.accepts('html')) {
+    return sendHtmlNotFound();
+  }
+
+  // respond with json
+  if (req.accepts('json')) {
+    return JSON.stringify({
+      error: 'We could not find what you are looking for',
+    });
+  }
+
+  // default to plain-text. send()
+  return 'We could not find what you are looking for';
+}
+
 async function sendIndex(req: Request, res: Response) {
   res.sendFile(path.join(__dirname, '../client/index.html'));
 }
 
-function isNotValidURL(URL: string) {
-  if (!URL || !validator.isURL(URL)) {
-    return true;
-  }
-  return false;
-}
-
-function sendHTML(shortURL: string): string {
-  return `<p>Your url: <br><b>${shortURL}</b>
- <br>
-  <a href="https://flores-url-shorty.herokuapp.com/">
-    <button>Go back</button>
-  </a>
-  `;
-}
-
-export { createShortUrl, redirect, sendIndex };
+export { createShortUrl, redirect, sendIndex, notFound };
