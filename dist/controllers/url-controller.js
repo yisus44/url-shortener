@@ -39,12 +39,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendIndex = exports.redirect = exports.createShortUrl = void 0;
+exports.notFound = exports.sendIndex = exports.redirect = exports.createShortUrl = void 0;
 var path_1 = __importDefault(require("path"));
 var util_1 = require("util");
 var shortid_1 = __importDefault(require("shortid"));
 var validator_1 = __importDefault(require("validator"));
 var URL_1 = require("../models/URL");
+var html_1 = require("./html");
 var redis_1 = require("../database/redis");
 var getAsync = util_1.promisify(redis_1.client.get).bind(redis_1.client);
 var baseURL = 'https://flores-url-shorty.herokuapp.com';
@@ -55,7 +56,8 @@ function createShortUrl(req, res) {
             switch (_a.label) {
                 case 0:
                     longURL = req.body.longURL;
-                    if (isNotValidURL(longURL)) {
+                    console.log(longURL);
+                    if (!validator_1.default.isURL(longURL)) {
                         res.sendStatus(400);
                         return [2 /*return*/];
                     }
@@ -66,7 +68,7 @@ function createShortUrl(req, res) {
                 case 2:
                     exists = _a.sent();
                     if (exists) {
-                        res.send(sendHTML(exists.shortURL));
+                        res.send(html_1.sendHtmlUrl(exists.shortURL));
                         return [2 /*return*/];
                     }
                     urlCode = shortid_1.default.generate();
@@ -79,7 +81,7 @@ function createShortUrl(req, res) {
                     return [4 /*yield*/, url.save()];
                 case 3:
                     _a.sent();
-                    res.send(sendHTML(shortURL));
+                    res.send(html_1.sendHtmlUrl(shortURL));
                     //its irrelevant for the client to know if its cached or not so we dont await or set a callback for this
                     redis_1.client.set(urlCode, longURL, function () {
                         console.log('cache set');
@@ -103,7 +105,6 @@ function redirect(req, res) {
             switch (_a.label) {
                 case 0:
                     urlCode = req.params.urlCode;
-                    console.log('hola esquizo');
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 4, , 5]);
@@ -111,18 +112,15 @@ function redirect(req, res) {
                 case 2:
                     cachedUrl = _a.sent();
                     if (cachedUrl) {
-                        res.redirect(cachedUrl);
-                        return [2 /*return*/];
+                        return [2 /*return*/, res.redirect(cachedUrl)];
                     }
                     return [4 /*yield*/, URL_1.URL.findOne({ urlCode: urlCode })];
                 case 3:
                     matchURL = _a.sent();
                     if (!matchURL) {
-                        res.sendStatus(404);
-                        return [2 /*return*/];
+                        return [2 /*return*/, res.status(404).send(notFound(req))];
                     }
-                    res.redirect(matchURL.longURL);
-                    return [2 /*return*/];
+                    return [2 /*return*/, res.redirect(matchURL.longURL)];
                 case 4:
                     error_2 = _a.sent();
                     res.send('We dont have that URL registered');
@@ -134,6 +132,21 @@ function redirect(req, res) {
     });
 }
 exports.redirect = redirect;
+function notFound(req) {
+    // respond with html page
+    if (req.accepts('html')) {
+        return html_1.sendHtmlNotFound();
+    }
+    // respond with json
+    if (req.accepts('json')) {
+        return JSON.stringify({
+            error: 'We could not find what you are looking for',
+        });
+    }
+    // default to plain-text. send()
+    return 'We could not find what you are looking for';
+}
+exports.notFound = notFound;
 function sendIndex(req, res) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
@@ -143,12 +156,3 @@ function sendIndex(req, res) {
     });
 }
 exports.sendIndex = sendIndex;
-function isNotValidURL(URL) {
-    if (!URL || !validator_1.default.isURL(URL)) {
-        return true;
-    }
-    return false;
-}
-function sendHTML(shortURL) {
-    return "<p>Your url: <br><b>" + shortURL + "</b>\n <br>\n  <a href=\"https://flores-url-shorty.herokuapp.com/\">\n    <button>Go back</button>\n  </a>\n  ";
-}
